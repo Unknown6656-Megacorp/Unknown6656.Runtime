@@ -1,2 +1,2 @@
 @echo off
-pub\publish.bat
+python "pub\publish.py" "%~f0"
