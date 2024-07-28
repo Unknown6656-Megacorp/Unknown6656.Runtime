@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        
+
         <LangVersion>preview</LangVersion>
         <EnablePreviewFeatures>True</EnablePreviewFeatures>
         <!-- <GenerateRequiresPreviewFeaturesAttribute>False</GenerateRequiresPreviewFeaturesAttribute> -->
         <Nullable>enable</Nullable>
         <NullableContextOptions>enable</NullableContextOptions>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        
+
         <OutputType>Library</OutputType>
         <OutputPath>$(SolutionDir)bin</OutputPath>
-        
+
         <Deterministic>true</Deterministic>
         <IsPackable>true</IsPackable>
         <!-- <TrimMode>Link</TrimMode> -->
@@ -24,7 +24,7 @@
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-        
+
         <Authors>Unknown6656</Authors>
         <Company>Unknown6656</Company>
         <Product>Unknown6656.Runtime by Unknown6656</Product>
@@ -34,7 +34,7 @@
         <RepositoryUrl>https://github.com/Unknown6656-Megacorp/Unknown6656.Runtime</RepositoryUrl>
         <PackageIcon>unknown6656-logo-1024.png</PackageIcon>
         <PackageTags>unknown6656;core;library;runtime;os;internal;native</PackageTags>
-        
+
         <PackageId>Unknown6656.Runtime</PackageId>
         <IncludeSymbols>true</IncludeSymbols>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
@@ -46,13 +46,19 @@
     </PropertyGroup>
     <ItemGroup>
         <None Include="$(SolutionDir)unknown6656-logo-1024.png">
-          <Pack>True</Pack>
-          <PackagePath></PackagePath>
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
         </None>
     </ItemGroup>
     <ItemGroup>
-      <Compile Remove="old\**" />
-      <EmbeddedResource Remove="old\**" />
-      <None Remove="old\**" />
+        <Compile Remove="old\**" />
+        <EmbeddedResource Remove="old\**" />
+        <None Remove="old\**" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Unknown6656.DontUseVar" Version="1.0.1" />
+        <PackageReference Include="Unknown6656.Generics" Version="1.0.13" />
+        <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+        <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
     </ItemGroup>
 </Project>
