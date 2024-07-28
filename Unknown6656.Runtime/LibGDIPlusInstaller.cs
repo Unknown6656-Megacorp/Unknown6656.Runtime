@@ -7,6 +7,6 @@ public static class LibGDIPlusInstaller
 
     public static void TryInstallGDI()
     {
-        // TODO
+#warning TODO : Implement LibGDIPlusInstaller.TryInstallGDI
     }
 }
