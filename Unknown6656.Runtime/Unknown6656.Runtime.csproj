@@ -56,7 +56,6 @@
         <None Remove="old\**" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Unknown6656.DontUseVar" Version="1.0.1" />
         <PackageReference Include="Unknown6656.Generics" Version="1.0.13" />
         <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
         <PackageReference Include="System.Drawing.Primitives" Version="4.3.0" />
