@@ -36,9 +36,3 @@ Use one of the follwing methods to install and use this library:
     #r "nuget: Unknown6656.Runtime, *"
     ```
 
-## Documentation and Usage
-To use the discriminated unions, simply include the namespace `Unknown6656.Runtime`:
-
-```csharp
-using Unknown6656.Runtime;
-```
