@@ -324,13 +324,13 @@ public static unsafe partial class ConsoleExtensions
 
     public static ConsoleState SaveConsoleState()
     {
-        bool cursor_visible = OS.IsPosix;
+        bool? cursor_visible = null;
         ConsoleMode stdinmode = default;
 
         if (OS.IsWindows)
         {
 #pragma warning disable CA1416 // Validate platform compatibility
-            cursor_visible |= Console.CursorVisible;
+            cursor_visible = Console.CursorVisible;
             stdinmode = STDINConsoleMode;
 #pragma warning restore CA1416
         }
@@ -356,6 +356,9 @@ public static unsafe partial class ConsoleExtensions
             Console.InputEncoding = state.InputEncoding ?? Encoding.Default;
             Console.OutputEncoding = state.OutputEncoding ?? Encoding.Default;
 
+            if (state.CursorVisible is bool vis)
+                CursorVisible = vis;
+
             if (OS.IsWindows)
             {
 #pragma warning disable CA1416 // Validate platform compatibility
@@ -365,9 +368,6 @@ public static unsafe partial class ConsoleExtensions
                     LINQ.TryDo(() => Console.CursorSize = sz);
 #pragma warning restore CA1416
             }
-
-            if (state.CursorVisible is bool vis)
-                LINQ.TryDo(() => Console.CursorVisible = vis);
         }
     }
 
