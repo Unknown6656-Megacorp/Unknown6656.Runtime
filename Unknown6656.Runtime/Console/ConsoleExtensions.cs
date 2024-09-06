@@ -15,6 +15,30 @@ namespace Unknown6656.Runtime.Console;
 using Console = System.Console;
 
 
+public enum TextIntensityMode
+    : byte
+{
+    Regular = 0,
+    Bold = 1,
+    Dim = 2,
+}
+
+public enum TextBlinkMode
+    : byte
+{
+    NotBlinking = 0,
+    Slow = 1,
+    Rapid = 2,
+}
+
+public enum LineRenderingMode
+{
+    Regular,
+    DoubleWidth,
+    DoubleHeight,
+    DoubleHeight_Top,
+    DoubleHeight_Bottom,
+}
 
 public static unsafe partial class ConsoleExtensions
 {
@@ -162,11 +186,99 @@ public static unsafe partial class ConsoleExtensions
         }
     }
 
-    public static bool AlternateScreen
+    public static bool AlternateScreenEnabled
     {
         get => throw new NotImplementedException();
         set => Console.Write(value ? "\e[?1049h" : "\e[?1049l");
     }
+
+    public static bool BracketedPasteModeEnabled
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value ? "\e[?2004h" : "\e[?2004l");
+    }
+
+    public static bool MouseEnabled
+    {
+        get => throw new NotImplementedException();
+#warning TODO : verify if this is correct
+        set => Console.Write(value ? "\e[?1000h" : "\e[?1000l");
+    }
+
+    public static bool FocusReportingEnabled
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value ? "\e[?1004h" : "\e[?1004l");
+    }
+
+    //    public static bool MouseHighlightingEnabled
+    //    {
+    //        get => throw new NotImplementedException();
+    //        set => Console.Write(value ? "\e[?1006h" : "\e[?1006l");
+    //    }
+
+    public static TextIntensityMode TextIntensity
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value switch {
+            TextIntensityMode.Bold => "\e[1m",
+            TextIntensityMode.Dim => "\e[2m",
+            _ => "\e[22m"
+        });
+    }
+
+    public static TextBlinkMode TextBlink
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value switch
+        {
+            TextBlinkMode.Slow => "\e[5m",
+            TextBlinkMode.Rapid => "\e[6m",
+            _ => "\e[25m"
+        });
+    }
+
+    public static bool InvertedColors
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value ? "\e[7m" : "\e[27m");
+    }
+
+    public static bool UnderlinedText
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value ? "\e[4m" : "\e[24m");
+    }
+
+    public static bool StrikethroughText
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value ? "\e[9m" : "\e[29m");
+    }
+
+    public static bool OverlinedText
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value ? "\e[53m" : "\e[55m");
+    }
+
+    public static bool FrameText
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value ? "\e[51m" : "\e[54m");
+    }
+
+    public static bool HiddenText
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value ? "\e[8m" : "\e[28m");
+    }
+
+    // TODO : ^[[5n     ???
+    // TODO : ^[[6n     cursor position report
+    // TODO : -> ^[[c
+    //        <- ^[[?61;6;7;21;22;23;24;28;32;42c
+
 
 
     public static bool SupportsVT100EscapeSequences => !OS.IsWindows || Environment.OSVersion.Version is { Major: >= 10, Build: >= 16257 };
@@ -189,6 +301,8 @@ public static unsafe partial class ConsoleExtensions
             LINQ.TryDo(() => STDERRConsoleMode |= ConsoleMode.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
         }
     }
+
+    public static void ClearAndResetAll() => Console.Write("\e[3J\ec");
 
     public static void ResetAllAttributes() => Console.Write("\e[0m");
 
@@ -218,6 +332,54 @@ public static unsafe partial class ConsoleExtensions
     {
         Console.SetCursorPosition(starting_pos.left, starting_pos.top);
         Console.Write(value);
+    }
+
+    public static void ChangeLineRendering(int line, LineRenderingMode mode)
+    {
+        if (mode is LineRenderingMode.DoubleHeight)
+        {
+            ChangeLineRendering(line, LineRenderingMode.DoubleHeight_Top);
+            ChangeLineRendering(line + 1, LineRenderingMode.DoubleHeight_Bottom);
+        }
+        else
+        {
+            Console.CursorTop = line;
+            Console.Write($"\e#{mode switch
+            {
+                LineRenderingMode.DoubleWidth => 6,
+                LineRenderingMode.DoubleHeight_Top => 3,
+                LineRenderingMode.DoubleHeight_Bottom => 4,
+                _ => 5
+            }}");
+        }
+    }
+
+    public static void WriteDoubleWidthLine(object? value) => WriteDoubleWidthLine(value, (Console.CursorLeft, Console.CursorTop));
+
+    public static void WriteDoubleWidthLine(object? value, int left, int top) => WriteDoubleWidthLine(value, (left, top));
+
+    public static void WriteDoubleWidthLine(object? value, (int left, int top)? starting_pos)
+    {
+        if (starting_pos is (int x, int y))
+            Console.SetCursorPosition(x, y);
+
+        Console.WriteLine($"\e#5{value}");
+    }
+
+    public static void WriteDoubleSizeLine(object? value) => WriteDoubleSizeLine(value, (Console.CursorLeft, Console.CursorTop));
+
+    public static void WriteDoubleSizeLine(object? value, int left, int top) => WriteDoubleSizeLine(value, (left, top));
+
+    public static void WriteDoubleSizeLine(object? value, (int left, int top)? starting_pos)
+    {
+        int x = starting_pos?.left ?? Console.CursorLeft;
+        int y = starting_pos?.top ?? Console.CursorTop;
+        string text = value?.ToString() ?? "";
+
+        Console.SetCursorPosition(x, y);
+        Console.Write($"\e#3{text}");
+        Console.SetCursorPosition(x, y + 1);
+        Console.WriteLine($"\e#4{text}");
     }
 
     public static void FullClear()

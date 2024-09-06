@@ -46,6 +46,7 @@ public static class ConsoleMouseListener
                                                            | ConsoleMode.ENABLE_WINDOW_INPUT
                                                            | ConsoleMode.ENABLE_EXTENDED_FLAGS)
                                                           & ~ConsoleMode.ENABLE_QUICK_EDIT_MODE;
+                ConsoleExtensions.MouseEnabled = true;
 
                 while (_running)
                     if (NativeInterop.GetNumberOfConsoleInputEvents(handle, out int count))
