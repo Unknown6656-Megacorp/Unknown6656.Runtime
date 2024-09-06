@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Linq;
 using System;
@@ -10,6 +11,9 @@ namespace Unknown6656.Runtime.Console;
 
 public delegate void ConsoleMouseEventHandler(int x, int y, MouseButtons buttons, ModifierKeysState modifiers);
 
+// TODO : implement for POSIX
+
+[SupportedOSPlatform(OS.WIN)]
 public static class ConsoleMouseListener
 {
     private static volatile bool _running = false;
