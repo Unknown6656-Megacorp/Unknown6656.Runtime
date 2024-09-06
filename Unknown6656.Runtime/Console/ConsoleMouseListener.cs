@@ -10,7 +10,7 @@ using System;
 using Unknown6656.Generics;
 using Unknown6656.Runtime;
 
-namespace Unknown6656.Controls.Console;
+namespace Unknown6656.Runtime.Console;
 
 
 public delegate void ConsoleMouseEventHandler(int x, int y, MouseButtons buttons, ModifierKeysState modifiers);

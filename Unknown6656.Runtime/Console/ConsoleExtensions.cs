@@ -1,19 +1,17 @@
 ﻿using System.Text.RegularExpressions;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using System.Linq;
-using System.IO;
 using System;
 
 using Unknown6656.Generics;
 using Unknown6656.Runtime;
 using Unknown6656.Common;
 
-namespace Unknown6656.Controls.Console;
+namespace Unknown6656.Rumtime.Console;
 
 using Console = System.Console;
 
@@ -152,6 +150,26 @@ public static unsafe partial class ConsoleExtensions
         }
     }
 
+    public static bool CursorVisible
+    {
+        [SupportedOSPlatform(OS.WIN)]
+        get => Console.CursorVisible;
+        set
+        {
+            if (OS.IsWindows)
+                Console.CursorVisible = value;
+            else
+                Console.Write(value ? "\e[?25h" : "\e[?25l");
+        }
+    }
+
+    public static bool AlternateScreen
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write(value ? "\e[?1049h" : "\e[?1049l");
+    }
+
+
     public static bool SupportsVT100EscapeSequences => !OS.IsWindows || Environment.OSVersion.Version is { Major: >= 10, Build: >= 16257 };
 #pragma warning disable CA1416 // Validate platform compatibility
     public static bool AreSTDInVT100EscapeSequencesEnabled => !OS.IsWindows || STDINConsoleMode.HasFlag(ConsoleMode.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
@@ -173,12 +191,40 @@ public static unsafe partial class ConsoleExtensions
         }
     }
 
+    public static void ResetAllAttributes() => Console.Write("\e[0m");
+
+    public static void ResetForegroundColor() => Console.Write("\e[39m");
+
+    public static void ResetBackgroundColor() => Console.Write("\e[49m");
+
+    public static void ScrollUp(int lines)
+    {
+        if (lines < 0)
+            ScrollDown(-lines);
+        else if (lines > 0)
+            Console.Write($"\e[{lines}S");
+    }
+
+    public static void ScrollDown(int lines)
+    {
+        if (lines < 0)
+            ScrollUp(-lines);
+        else if (lines > 0)
+            Console.Write($"\e[{lines}T");
+    }
+
     public static void Write(object? value, int left, int top) => Write(value, (left, top));
 
     public static void Write(object? value, (int left, int top) starting_pos)
     {
         Console.SetCursorPosition(starting_pos.left, starting_pos.top);
         Console.Write(value);
+    }
+
+    public static void FullClear()
+    {
+        Console.Clear();
+        Console.Write("\e[3J");
     }
 
 
