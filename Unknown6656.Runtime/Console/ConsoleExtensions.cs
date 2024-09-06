@@ -8,10 +8,9 @@ using System.Linq;
 using System;
 
 using Unknown6656.Generics;
-using Unknown6656.Runtime;
 using Unknown6656.Common;
 
-namespace Unknown6656.Rumtime.Console;
+namespace Unknown6656.Runtime.Console;
 
 using Console = System.Console;
 

@@ -1,20 +1,14 @@
-﻿using System.Runtime.InteropServices;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Threading;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System;
 
 using Unknown6656.Generics;
-using Unknown6656.Runtime;
 
 namespace Unknown6656.Runtime.Console;
 
 
 public delegate void ConsoleMouseEventHandler(int x, int y, MouseButtons buttons, ModifierKeysState modifiers);
-
 
 public static class ConsoleMouseListener
 {
@@ -28,6 +22,7 @@ public static class ConsoleMouseListener
     public static event ConsoleMouseEventHandler? MouseHorizontalWheel;
     public static event ConsoleMouseEventHandler? MouseVerticalWheel;
     // TODO : key events
+
 
     public static void Start()
     {
