@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Collections.Generic;
@@ -423,9 +423,6 @@ public static unsafe partial class ConsoleExtensions
         Console.Write("\e[3J");
     }
 
-
-#warning TODO : ignore escape sequences for length calculation in all the following functions
-
     public static (int max_line_length, int line_count) WriteBlock(string value, int left, int top) =>
         WriteBlock(value, (left, top));
 
@@ -448,22 +445,9 @@ public static unsafe partial class ConsoleExtensions
 
     public static (int max_line_length, int line_count) WriteBlock(IEnumerable<string> lines, (int left, int top) starting_pos, (int width, int height) max_size, bool wrap_overflow = true)
     {
-        List<string> cropped_lines = [];
-
-        foreach (string line in lines)
-        {
-            string[] sub_lines = line.PartitionByArraySize(max_size.width).ToArray(c => new string(c));
-
-            if (!wrap_overflow && sub_lines.Length > 0)
-                cropped_lines.Add(sub_lines[0]);
-            else
-                cropped_lines.AddRange(sub_lines);
-        }
-
+        List<string> cropped_lines = SplitLinesWithVT100(lines.ToList(), max_size.width, wrap_overflow);
         int line_no = 0;
-
-        while (cropped_lines.Count > max_size.height)
-            cropped_lines.RemoveAt(cropped_lines.Count - 1);
+        int max_width = 0;
 
         foreach (string line in cropped_lines.Take(max_size.height))
         {
@@ -471,9 +455,10 @@ public static unsafe partial class ConsoleExtensions
             Console.Write(line);
 
             ++line_no;
+            max_width = Math.Max(max_width, Console.CursorLeft - starting_pos.left);
         }
 
-        return (cropped_lines.Max(line => line.Length), cropped_lines.Count);
+        return (max_width, line_no);
     }
 
     public static void WriteVertical(object? value) => WriteVertical(value, Console.CursorLeft, Console.CursorTop);
@@ -495,8 +480,6 @@ public static unsafe partial class ConsoleExtensions
     public static void WriteUnderlined(object? value) => Console.Write($"\e[4m{value}\e[24m");
 
     public static void WriteInverted(object? value) => Console.Write($"\e[7m{value}\e[27m");
-
-
 
     [SupportedOSPlatform(OS.WIN)]
     public static (ConsoleFontInfo before, ConsoleFontInfo after) SetCurrentFont(Font font)
@@ -568,18 +551,73 @@ public static unsafe partial class ConsoleExtensions
         }
     }
 
-    public static string StripVT100EscapeSequences(this string raw_string) => GenerateVT100Regex().Replace(raw_string, "");
+    public static List<string> SplitLinesWithVT100(List<string> lines, int max_width, bool wrap_overflow = true)
+    {
+        return [..from line in lines
+                  from processed in process(line, max_width)
+                  select processed];
 
-    public static MatchCollection MatchVT100EscapeSequences(this string raw_string) => GenerateVT100Regex().Matches(raw_string);
+        List<string> process(string line, int max_width)
+        {
+            StringBuilder curr = new();
+            List<string> result = [];
+            int len = 0;
 
-    public static int CountVT100EscapeSequences(this string raw_string) => GenerateVT100Regex().Count(raw_string);
+            for (int i = 0; i < line.Length; ++i)
+            {
+                char c = line[i];
 
-    public static bool ContainsVT100EscapeSequences(this string raw_string) => GenerateVT100Regex().IsMatch(raw_string);
+                if (c is '\e' or '\x9b' && GenerateVT100Regex().Match(line, i) is { Success: true } match)
+                {
+                    curr.Append(line.AsSpan(i, match.Length));
+                    i += match.Length - 1;
+                }
+                else
+                {
+                    curr.Append(c);
+                    len += c is '\x7f'
+                             or '\x81'
+                             or '\x8d'
+                             or '\x8f'
+                             or '\x90'
+                             or '\x9d'
+                             or (>= '\x00' and <= '\x08')
+                             or (>= '\x0b' and <= '\x0c')
+                             or (>= '\x0e' and <= '\x1f') ? 0 : 1;
 
-    public static int LengthWithoutVT100EscapeSequences(this string raw_string) => raw_string.Length - MatchVT100EscapeSequences(raw_string).Sum(m => m.Length);
+                    if (len >= max_width)
+                    {
+                        result.Add(curr.ToString());
+
+                        if (!wrap_overflow)
+                            return result;
+
+                        curr.Clear();
+                        len = 0;
+                    }
+                }
+            }
+
+            if (curr.Length > 0)
+                result.Add(curr.ToString());
+
+            return result;
+        }
+    }
+
+    public static string StripVT100Sequences(this string raw_string) => GenerateVT100Regex().Replace(raw_string, "");
+
+    public static MatchCollection MatchVT100Sequences(this string raw_string) => GenerateVT100Regex().Matches(raw_string);
+
+    public static int CountVT100Sequences(this string raw_string) => GenerateVT100Regex().Count(raw_string);
+
+    public static bool ContainsVT100Sequences(this string raw_string) => GenerateVT100Regex().IsMatch(raw_string);
+
+    public static int LengthWithoutVT100Sequences(this string raw_string) => raw_string.Length - MatchVT100Sequences(raw_string).Sum(m => m.Length);
 
 
-    [GeneratedRegex(@"(\x1b\[|\x9b)([0-\?]*[\x20-\/]*[@-~]|[^@-_]*[@-_]|[\da-z]{1,2};\d{1,2}H)|\x1b([@-_0-\?\x60-~]|[\x20-\/]|[\x20-\/]{2,}[@-~])", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
+    // TODO : optimize this regex expression to be more efficient
+    [GeneratedRegex(@"(\x1b\[|\x9b)([0-\?]*[\x20-\/]*[@-~]|[^@-_]*[@-_]|[\da-z]{1,2};\d{1,2}H)|\x1b([@-_0-\?\x60-~]|[\x20-\/]|[\x20-\/]{2,}[@-~]|[\x30-\x3f]|[\x20-\x2f]+[\x30-\x7e]|\[[\x30-\x3f]*[\x20-\x2f]*[\x40-\x7e])", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
     private static partial Regex GenerateVT100Regex();
 }
 
