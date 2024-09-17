@@ -184,6 +184,12 @@ public static unsafe partial class ConsoleExtensions
         }
     }
 
+    public static ConsoleState CurrentConsoleState
+    {
+        get => SaveConsoleState();
+        set => RestoreConsoleState(value);
+    }
+
     public static ConsoleCursorShape CursorShape
     {
         get => throw new NotImplementedException();
