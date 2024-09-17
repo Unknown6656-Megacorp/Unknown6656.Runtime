@@ -361,6 +361,14 @@ public static unsafe partial class ConsoleExtensions
         Console.Write(value);
     }
 
+    public static void InsertLine(int count = 1) => Console.Write($"\e[{count}L");
+
+    public static void DeleteLine(int count = 1) => Console.Write($"\e[{count}M");
+
+    public static void InsertSpaceCharacter(int count = 1) => Console.Write($"\e[{count}@");
+
+    public static void DeleteCharacter(int count = 1) => Console.Write($"\e[{count}P");
+
     public static void ChangeLineRendering(int line, LineRenderingMode mode)
     {
         if (mode is LineRenderingMode.DoubleHeight)
