@@ -319,9 +319,11 @@ public static unsafe partial class ConsoleExtensions
         }
     }
 
-    public static void ClearAndResetAll() => Console.Write("\e[3J\ec");
+    public static void SoftReset() => Console.Write("\e[!p");
 
-    public static void ResetAllAttributes() => Console.Write("\e[0m");
+    public static void ClearAndResetAll() => Console.Write("\e[3J\ec\e[m");
+
+    public static void ResetAllAttributes() => Console.Write("\e[m");
 
     public static void ResetForegroundColor() => Console.Write("\e[39m");
 
@@ -342,6 +344,8 @@ public static unsafe partial class ConsoleExtensions
         else if (lines > 0)
             Console.Write($"\e[{lines}T");
     }
+
+    public static void WriteReverseIndex() => Console.Write("\eM");
 
     public static void Write(object? value, int left, int top) => Write(value, (left, top));
 
