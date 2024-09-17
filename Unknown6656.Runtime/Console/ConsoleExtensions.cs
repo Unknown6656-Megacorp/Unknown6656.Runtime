@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Collections.Generic;
@@ -38,6 +38,17 @@ public enum LineRenderingMode
     DoubleHeight,
     DoubleHeight_Top,
     DoubleHeight_Bottom,
+}
+
+public enum ConsoleCursorShape
+{
+    Default = 0,
+    BlinkingBlock = 1,
+    SolidBlock = 2,
+    BlinkingUnderline = 3,
+    SolidUnderline = 4,
+    BlinkingBar = 5,
+    SolidBar = 6,
 }
 
 public static unsafe partial class ConsoleExtensions
@@ -171,6 +182,12 @@ public static unsafe partial class ConsoleExtensions
 
             return new Font(font.FontName, font.FontSize.H, font.FontWeight > 550 ? FontStyle.Bold : FontStyle.Regular);
         }
+    }
+
+    public static ConsoleCursorShape CursorShape
+    {
+        get => throw new NotImplementedException();
+        set => Console.Write($"\e[{(int)value} q");
     }
 
     public static bool CursorVisible
