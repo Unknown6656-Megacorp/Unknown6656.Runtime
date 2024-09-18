@@ -465,11 +465,25 @@ public static unsafe partial class ConsoleExtensions
         }
     }
 
+
+    // TODO : implement saving SGRs and restoring them
     public static ConsoleState CurrentConsoleState
     {
         get => SaveConsoleState();
         set => RestoreConsoleState(value);
     }
+
+    public static ConsoleGraphicRendition? CurrentGraphicRendition
+    {
+        get => GetRawVT100GraphicRenditions() is { } sgr ? new(sgr) : null;
+        set
+        {
+            if (value?.FullVT100SGR() is { } sgr)
+                sysconsole.Write($"\e[{string.Join(';', sgr)}m");
+        }
+    }
+
+
 
     public static ConsoleCursorShape CursorShape
     {
@@ -479,8 +493,13 @@ public static unsafe partial class ConsoleExtensions
 
     public static bool CursorVisible
     {
-        [SupportedOSPlatform(OS.WIN)]
-        get => sysconsole.CursorVisible;
+        get
+        {
+            if (OS.IsWindows)
+                return sysconsole.CursorVisible;
+            else
+                throw new NotImplementedException(); // TODO
+        }
         set
         {
             if (OS.IsWindows)
@@ -569,7 +588,7 @@ public static unsafe partial class ConsoleExtensions
 
     public static TextIntensityMode TextIntensity
     {
-        get => throw new NotImplementedException();
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).Intensity;
         set => sysconsole.Write(value switch {
             TextIntensityMode.Bold => "\e[1m",
             TextIntensityMode.Dim => "\e[2m",
@@ -579,7 +598,7 @@ public static unsafe partial class ConsoleExtensions
 
     public static TextBlinkMode TextBlink
     {
-        get => throw new NotImplementedException();
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).Blink;
         set => sysconsole.Write(value switch
         {
             TextBlinkMode.Slow => "\e[5m",
@@ -590,39 +609,59 @@ public static unsafe partial class ConsoleExtensions
 
     public static bool InvertedColors
     {
-        get => throw new NotImplementedException();
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).AreColorsInverted;
         set => sysconsole.Write(value ? "\e[7m" : "\e[27m");
     }
 
-    public static bool UnderlinedText
+    public static TextUnderlinedMode TextUnderline
     {
-        get => throw new NotImplementedException();
-        set => sysconsole.Write(value ? "\e[4m" : "\e[24m");
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).Underlined;
+        set => sysconsole.Write($"\e[{(int)value}m");
     }
 
-    public static bool StrikethroughText
+    public static bool CrossedOutText
     {
-        get => throw new NotImplementedException();
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).IsCrossedOut;
         set => sysconsole.Write(value ? "\e[9m" : "\e[29m");
     }
 
     public static bool OverlinedText
     {
-        get => throw new NotImplementedException();
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).IsOverlined;
         set => sysconsole.Write(value ? "\e[53m" : "\e[55m");
     }
 
-    public static bool FrameText
+    public static TextFrameMode TextFrame
     {
-        get => throw new NotImplementedException();
-        set => sysconsole.Write(value ? "\e[51m" : "\e[54m");
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).TextFrame;
+        set => sysconsole.Write($"\e[{(int)value}m");
     }
 
-    public static bool HiddenText
+    public static bool ConcealedText
     {
-        get => throw new NotImplementedException();
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).IsTextConcealed;
         set => sysconsole.Write(value ? "\e[8m" : "\e[28m");
     }
+
+    public static bool ItalicText
+    {
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).IsItalic;
+        set => sysconsole.Write(value ? "\e[3m" : "\e[23m");
+    }
+
+    public static bool GothicText
+    {
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).IsGothic;
+        set => sysconsole.Write(value ? "\e[20m" : "\e[23m");
+    }
+
+    public static TextTransformationMode TextTransformation
+    {
+        get => (CurrentGraphicRendition ?? ConsoleGraphicRendition.Default).TextTransformation;
+        set => sysconsole.Write($"\e[{(int)value}m");
+    }
+
+
 
     // TODO : ^[[5n     ???
     // TODO : ^[[6n     cursor position report
@@ -802,16 +841,6 @@ public static unsafe partial class ConsoleExtensions
     // TODO : page 151 of https://web.mit.edu/dosathena/doc/www/ek-vt520-rm.pdf
 
     public static string[]? GetRawVT100GraphicRenditions() => GetRawVT100SettingsReport("m")?.Split(';');
-
-    public static string[]? GetGraphicRenditions()
-    {
-        foreach (string sgr in GetRawVT100GraphicRenditions() ?? [])
-        {
-            // TODO : process each SGR
-        }
-
-        return null;
-    }
 
     public static void GetCursorType()
     {
