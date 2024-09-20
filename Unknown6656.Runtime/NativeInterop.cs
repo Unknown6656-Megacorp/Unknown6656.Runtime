@@ -139,7 +139,7 @@ public enum ConsoleMode
 [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 public struct ConsoleFontInfo
 {
-    internal const int FIXED_WIDTH_TRUETYPE = 0x0036;
+    public const int FIXED_WIDTH_TRUETYPE = 0x0036;
 
     public int cbSize;
     public int FontIndex;

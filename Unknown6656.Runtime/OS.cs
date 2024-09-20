@@ -39,7 +39,7 @@ public static class OS
     /// <returns></returns>
     [SupportedOSPlatform(LIN)]
     [SupportedOSPlatform(MAC)]
-    public static string? ExecutBashCommand(string command)
+    public static string? ExecuteBashCommand(string command)
     {
         using Process? process = Process.Start(new ProcessStartInfo
         {
@@ -69,8 +69,8 @@ public static class OS
         }
         else
         {
-            ExecutBashCommand("echo 1 > /proc/sys/kernel/sysrq");
-            ExecutBashCommand("echo c > /proc/sysrq-trigger");
+            ExecuteBashCommand("echo 1 > /proc/sys/kernel/sysrq");
+            ExecuteBashCommand("echo c > /proc/sysrq-trigger");
         }
 #pragma warning restore CA1416
     }
@@ -93,4 +93,7 @@ public static class OS
             return false;
         }
     }
+
+    // TODO : detect if inside VM (vmware, virtualbox, qemu, etc.)
+    // TODO : throw on unsupported OS functionality
 }
