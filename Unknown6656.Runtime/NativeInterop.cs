@@ -104,17 +104,17 @@ public static unsafe class NativeInterop
 
 
     [DllImport(LIBC)]
-    [SupportedOSPlatform(OS.LIN)]
+    [SupportedOSPlatform(OS.LNX)]
     [SupportedOSPlatform(OS.MAC)]
     public static extern void mprotect(void* buffer, int size, int mode);
 
     [DllImport(LIBC)]
-    [SupportedOSPlatform(OS.LIN)]
+    [SupportedOSPlatform(OS.LNX)]
     [SupportedOSPlatform(OS.MAC)]
     public static extern void posix_memalign(void** buffer, int alignment, int size);
 
     [DllImport(LIBC)]
-    [SupportedOSPlatform(OS.LIN)]
+    [SupportedOSPlatform(OS.LNX)]
     [SupportedOSPlatform(OS.MAC)]
     public static extern void free(void* buffer);
 }

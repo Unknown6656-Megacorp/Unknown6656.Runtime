@@ -12,16 +12,18 @@ namespace Unknown6656.Runtime;
 public enum KnownOS
 {
     Windows,
+    UnknownUnix,
     Linux,
-    iOS,
-    MacOS,
-    MacCatalyst,
-    Android,
-    Browser,
-    TVOS,
-    WSL,
     FreeBSD,
     Docker,
+    WSL,
+    Android,
+    iOS,
+    TvOS,
+    WatchOS,
+    MacOS,
+    MacCatalyst,
+    Browser,
 }
 
 public static class OS
@@ -37,6 +39,7 @@ public static class OS
     public const string ANDR = "android";
     public const string BROW = "browser";
     public const string TVOS = "tvos";
+    public const string WAT = "watchos";
 
 
     public static KnownOS CurrentOS
@@ -54,20 +57,30 @@ public static class OS
                 return KnownOS.WSL;
             else if (IsInsideDocker)
                 return KnownOS.Docker;
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD) || OperatingSystem.IsFreeBSD())
                 return KnownOS.FreeBSD;
+            else if (OperatingSystem.IsMacCatalyst())
+                return KnownOS.MacCatalyst;
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || Environment.OSVersion.Platform is PlatformID.MacOSX || OperatingSystem.IsMacOS())
+                return KnownOS.MacOS;
+            else if (OperatingSystem.IsAndroid())
+                return KnownOS.Android;
+            else if (OperatingSystem.IsIOS())
+                return KnownOS.iOS;
+            else if (OperatingSystem.IsTvOS())
+                return KnownOS.TvOS;
+            else if (OperatingSystem.IsWatchOS())
+                return KnownOS.WatchOS;
+            else if (OperatingSystem.IsBrowser() || OperatingSystem.IsWasi())
+                return KnownOS.Browser;
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 return KnownOS.Linux;
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || Environment.OSVersion.Platform is PlatformID.MacOSX)
-                return KnownOS.MacOS; // check if catalyst
             else if (Environment.OSVersion.Platform is PlatformID.Unix)
-                return KnownOS.Linux; // this could also be macos
+                return KnownOS.UnknownUnix; // this could also be macos, although it is unlikely
             else if (Environment.OSVersion.Platform is PlatformID.Other)
-                ; // this could be wasm etc.
+                ; // this could be wasm, although it is unlikely
 
-            // TODO : check if ios, mac catalyst, android, tvos, browser, etc.
-
-            throw new NotImplementedException();
+            return KnownOS.UnknownUnix; // probably some kind of unix-like system
         }
     }
 
@@ -77,9 +90,50 @@ public static class OS
 
     public static bool IsFreeBSD => RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD);
 
+    public static bool IsUnix => IsOneOf(
+        KnownOS.Linux,
+        KnownOS.UnknownUnix,
+        KnownOS.FreeBSD,
+        KnownOS.WSL,
+        KnownOS.Docker,
+        KnownOS.MacOS,
+        KnownOS.MacCatalyst
+    );
+
     public static bool IsOSX => CurrentOS is KnownOS.MacOS or KnownOS.MacCatalyst;
 
-    public static bool IsPOSIXCompatible => CurrentOS is KnownOS.Linux or KnownOS.iOS or KnownOS.MacOS or KnownOS.MacCatalyst or KnownOS.Android;
+    public static bool IsAndroid => CurrentOS is KnownOS.Android;
+
+    public static bool IsApple => IsOneOf(
+        KnownOS.MacOS,
+        KnownOS.MacCatalyst,
+        KnownOS.iOS,
+        KnownOS.TvOS,
+        KnownOS.WatchOS
+    );
+
+    public static bool IsBrowser => CurrentOS is KnownOS.Browser;
+
+    public static bool IsMobile => IsOneOf(
+        KnownOS.Android,
+        KnownOS.iOS,
+        KnownOS.TvOS,
+        KnownOS.WatchOS
+    );
+
+    public static bool IsPOSIXCompatible => IsOneOf(
+        KnownOS.Linux,
+        KnownOS.UnknownUnix,
+        KnownOS.FreeBSD,
+        KnownOS.WSL,
+        KnownOS.Docker,
+        KnownOS.MacOS,
+        KnownOS.MacCatalyst,
+        KnownOS.Android,
+        KnownOS.iOS,
+        KnownOS.TvOS,
+        KnownOS.WatchOS
+    );
 
     public static bool IsInsideDocker => File.Exists(DOCKER_INDICATOR); // TODO : more checks?
 
