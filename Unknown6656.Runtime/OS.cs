@@ -212,5 +212,35 @@ public static class OS
 #pragma warning restore CA1416
     }
 
+    [SupportedOSPlatform(LNX)]
+    [SupportedOSPlatform(ANDR)]
+    [SupportedOSPlatform(IOS)]
+    [SupportedOSPlatform(MAC)]
+    [SupportedOSPlatform(MACC)]
+    [SupportedOSPlatform(TVOS)]
+    [SupportedOSPlatform(WAT)]
+    public static string? GetUname(char flag = 'o')
+    {
+        try
+        {
+            ProcessStartInfo psi = new()
+            {
+                FileName = "uname",
+                Arguments = $"-{flag}",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using Process? process = Process.Start(psi);
+
+            return process?.StandardOutput.ReadToEnd().Trim();
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+
     // TODO : throw on unsupported OS functionality
 }
