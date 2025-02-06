@@ -13,7 +13,7 @@ internal class __module
     public static void Initializer()
     {
         if (!LibGDIPlusInstaller.IsGDIInstalled)
-            LibGDIPlusInstaller.TryInstallGDI();
+            LibGDIPlusInstaller.ResolveLibGDIPlus();
     }
 #pragma warning restore CA2255
 }

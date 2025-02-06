@@ -27,9 +27,6 @@ public static class LibGDIPlusInstaller
     public static FileInfo? GDILibraryPath { get; private set; } = null;
 
 
-#pragma warning disable CA2255 // The 'ModuleInitializer' attribute should not be used in libraries
-    [ModuleInitializer]
-#pragma warning restore CA2255
     internal static void ResolveLibGDIPlus()
     {
         static FileInfo? resolve()
